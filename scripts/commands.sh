@@ -12,10 +12,21 @@ push_to_history() {
 		return
 	fi
 
+	# Truncate forward history if we navigated back (vim-style)
+	if [ "$cursor" -gt 1 ]; then
+		total_lines=$(read_history_length)
+		lines_to_keep=$((total_lines - cursor + 1))
+		if [ "$lines_to_keep" -gt 0 ]; then
+			head -n "$lines_to_keep" "$HISTORY_FILE" >"$HISTORY_FILE.tmp"
+			mv "$HISTORY_FILE.tmp" "$HISTORY_FILE"
+		fi
+	fi
+
 	last_line=$(read_last_line)
 
 	# Prevent duplicates in a row
 	if [ "$last_line" = "$@" ]; then
+		reset_cursor
 		return
 	fi
 
